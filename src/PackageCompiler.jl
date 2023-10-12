@@ -340,7 +340,7 @@ function create_sysimg_object_file(object_file::String,
                 $(join(map(repr, precompile_files), "\n" * " " ^ 8))
             ]
             for file in precompile_files, statement in eachline(file)
-                # println(statement)
+                println(statement)
                 # This is taken from https://github.com/JuliaLang/julia/blob/2c9e051c460dd9700e6814c8e49cc1f119ed8b41/contrib/generate_precompile.jl#L375-L393
                 ps = try
                     Meta.parse(statement)
