@@ -339,6 +339,7 @@ function create_sysimg_object_file(object_file::String,
             precompile_files = String[
                 $(join(map(repr, precompile_files), "\n" * " " ^ 8))
             ]
+            println("BEGIN precompiling the precompile_files")
             for file in precompile_files, statement in eachline(file)
                 println(statement)
                 # This is taken from https://github.com/JuliaLang/julia/blob/2c9e051c460dd9700e6814c8e49cc1f119ed8b41/contrib/generate_precompile.jl#L375-L393
@@ -397,10 +398,12 @@ function create_sysimg_object_file(object_file::String,
                 println("...\$x")
                 @label skip_precompile
             end
-
+            println("DONE precompiling the precompile_files")
+            println("BEGIN precompiling the extra_precompiles")
             @eval PrecompileStagingArea begin
                 $extra_precompiles
             end
+            println("DONE precompiling the precompile_files")
         end # module
         """
 
@@ -596,6 +599,7 @@ function create_sysimage(packages::Union{Nothing, Symbol, Vector{String}, Vector
     # Create the sysimage
     object_file = tempname() * ".o"
 
+    println("BEGIN `create_sysimg_object_file`")
     create_sysimg_object_file(object_file, packages, packages_sysimg;
                             project,
                             base_sysimage,
@@ -606,6 +610,7 @@ function create_sysimage(packages::Union{Nothing, Symbol, Vector{String}, Vector
                             sysimage_build_args,
                             extra_precompiles,
                             incremental)
+    println("DONE `create_sysimg_object_file`")
     object_files = [object_file]
     if julia_init_c_file !== nothing
         if julia_init_c_file isa String
@@ -626,11 +631,13 @@ function create_sysimage(packages::Union{Nothing, Symbol, Vector{String}, Vector
             end
         end
     end
+    println("BEGIN `create_sysimg_from_object_file`")
     create_sysimg_from_object_file(object_files,
                                 sysimage_path;
                                 compat_level,
                                 version,
                                 soname)
+    println("DONE `create_sysimg_from_object_file`")
 
     rm(object_file; force=true)
 
@@ -845,6 +852,7 @@ function create_app(package_dir::String,
     push!(precompiles, "precompile(Tuple{typeof(empty!), Vector{String}})")
     push!(precompiles, "precompile(Tuple{typeof(popfirst!), Vector{String}})")
 
+    println("BEGIN `create_sysimage`")
     create_sysimage([package_name]; sysimage_path, project,
                     incremental,
                     filter_stdlibs,
@@ -855,10 +863,13 @@ function create_app(package_dir::String,
                     include_transitive_dependencies,
                     extra_precompiles = join(precompiles, "\n"),
                     script)
+    println("DONE `create_sysimage`")
 
+    println("BEGIN `create_executable_from_sysimg`")
     for (app_name, julia_main) in executables
         create_executable_from_sysimg(joinpath(app_dir, "bin", app_name), c_driver_program, string(package_name, ".", julia_main))
     end
+    println("DONE `create_executable_from_sysimg`")
 end
 
 
