@@ -403,7 +403,7 @@ function create_sysimg_object_file(object_file::String,
             @eval PrecompileStagingArea begin
                 $extra_precompiles
             end
-            println("DONE precompiling the precompile_files")
+            println("DONE precompiling the extra_precompiles")
         end # module
         """
 
