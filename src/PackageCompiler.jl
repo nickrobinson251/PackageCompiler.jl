@@ -379,21 +379,22 @@ function create_sysimg_object_file(object_file::String,
                             dep = string(e.var)
                             mods = filter(p -> p.first.name == dep, Base.loaded_modules)
                             if length(mods) != 1
-                                @debug "zero or multiple modules loaded with name \$dep"
+                                @warn "zero or multiple modules loaded with name \$dep"
                                 @goto skip_precompile
                             else
                                 _, mod = only(mods)
-                                @debug "importing \$dep into PrecompileStagingArea"
+                                @warn "importing \$dep into PrecompileStagingArea"
                                 Base.eval(PrecompileStagingArea, :(\$(Symbol(dep)) = \$(mod)))
                             end
                         else
                             # See julia issue #28808
-                            @debug "failed to execute \$statement: \$e"
+                            @warn "failed to execute \$statement: \$e"
                             @goto skip_precompile
                         end
                     end
                 end
-                precompile(ps...)
+                x = precompile(ps...)
+                println("...\$x")
                 @label skip_precompile
             end
 
